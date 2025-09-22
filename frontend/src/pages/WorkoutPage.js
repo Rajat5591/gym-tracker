@@ -3,11 +3,13 @@ import styled from 'styled-components';
 import { PlusIcon, PlayIcon, StopIcon } from '@heroicons/react/24/outline';
 import { useWorkout } from '../context/WorkoutContext';
 import { exerciseAPI } from '../utils/api';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import LoadingSpinner from '../components/LoadingSpinner';
+
 
 const WorkoutContainer = styled.div`
   padding: 1rem;
 `;
+
 
 const Header = styled.div`
   display: flex;
@@ -15,6 +17,7 @@ const Header = styled.div`
   align-items: center;
   margin-bottom: 2rem;
 `;
+
 
 const StartWorkoutButton = styled.button`
   display: flex;
@@ -25,15 +28,17 @@ const StartWorkoutButton = styled.button`
   border: none;
   border-radius: ${({ theme }) => theme.borderRadius.md};
   padding: 1rem 2rem;
-  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+  font-weight: ${({ theme }) => theme.typography.semibold};
   cursor: pointer;
   transition: all 0.2s ease;
+
 
   &:hover {
     background: ${({ theme }) => theme.colors.primaryHover};
     transform: translateY(-2px);
   }
 `;
+
 
 const WorkoutSession = styled.div`
   background: ${({ theme }) => theme.colors.surface};
@@ -43,6 +48,7 @@ const WorkoutSession = styled.div`
   margin-bottom: 2rem;
 `;
 
+
 const SessionHeader = styled.div`
   display: flex;
   justify-content: space-between;
@@ -51,6 +57,7 @@ const SessionHeader = styled.div`
   padding-bottom: 1rem;
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 `;
+
 
 const ExerciseSearch = styled.input`
   width: 100%;
@@ -67,6 +74,7 @@ const ExerciseSearch = styled.input`
   }
 `;
 
+
 const ExerciseList = styled.div`
   max-height: 300px;
   overflow-y: auto;
@@ -74,6 +82,7 @@ const ExerciseList = styled.div`
   border-radius: ${({ theme }) => theme.borderRadius.md};
   background: ${({ theme }) => theme.colors.surface};
 `;
+
 
 const ExerciseItem = styled.div`
   padding: 0.75rem 1rem;
@@ -90,11 +99,13 @@ const ExerciseItem = styled.div`
   }
 `;
 
+
 const CurrentExercises = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
 `;
+
 
 const ExerciseBlock = styled.div`
   background: ${({ theme }) => theme.colors.background};
@@ -103,6 +114,7 @@ const ExerciseBlock = styled.div`
   padding: 1rem;
 `;
 
+
 const SetRow = styled.div`
   display: grid;
   grid-template-columns: 40px 80px 80px 80px 60px;
@@ -110,6 +122,7 @@ const SetRow = styled.div`
   align-items: center;
   padding: 0.5rem 0;
 `;
+
 
 const SetInput = styled.input`
   padding: 0.5rem;
@@ -126,6 +139,7 @@ const SetInput = styled.input`
   }
 `;
 
+
 const SetButton = styled.button`
   padding: 0.5rem;
   border: 1px solid ${({ theme }) => theme.colors.border};
@@ -141,6 +155,7 @@ const SetButton = styled.button`
       isCompleted ? '#059669' : theme.colors.surfaceHover};
   }
 `;
+
 
 const WorkoutPage = () => {
   const { 
@@ -181,8 +196,8 @@ const WorkoutPage = () => {
   };
 
   const handleStartWorkout = () => {
-    const workoutName = `Workout - ${new Date().toLocaleDateString()}`;
-    startWorkout(workoutName);
+    const startName = `Workout - ${new Date().toLocaleDateString()}`;
+    startWorkout(startName);
   };
 
   const handleAddExercise = (exercise) => {
@@ -192,6 +207,17 @@ const WorkoutPage = () => {
   };
 
   const handleSetUpdate = (exerciseId, setId, field, value) => {
+    // Input validation for weight and reps
+    if(field === 'weight'){
+      if(typeof value === 'object'){
+        value.value = Math.min(Math.max(value.value, 0), 1000);
+      } else {
+        value = Math.min(Math.max(value, 0), 1000);
+      }
+    }
+    if(field === 'reps'){
+      value = Math.min(Math.max(value, 0), 50);
+    }
     updateSet(exerciseId, setId, { [field]: value });
   };
 
@@ -259,7 +285,7 @@ const WorkoutPage = () => {
               marginBottom: '1rem'
             }}
           >
-            <PlusIcon style={{ width: 20, height: 20, display: 'inline', marginRight: '0.5rem' }} />
+            <PlusIcon style={{ width: 20, height: 20, marginRight: '0.5rem' }} />
             Add Exercise
           </button>
         )}
@@ -274,13 +300,16 @@ const WorkoutPage = () => {
             />
             
             {loading ? (
-              <LoadingSpinner fullHeight={false} />
+              <LoadingSpinner style={{ height: 150 }} />
             ) : (
               <ExerciseList>
                 {exercises.map(exercise => (
                   <ExerciseItem
                     key={exercise._id}
                     onClick={() => handleAddExercise(exercise)}
+                    tabIndex={0}
+                    role="button"
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddExercise(exercise)}
                   >
                     <div style={{ fontWeight: 'bold' }}>{exercise.name}</div>
                     <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
@@ -310,51 +339,46 @@ const WorkoutPage = () => {
         <CurrentExercises>
           {currentWorkout?.exercises?.map((exerciseLog) => (
             <ExerciseBlock key={exerciseLog.id}>
-              <h3 style={{ marginBottom: '1rem' }}>{exerciseLog.exercise.name}</h3>
+              <h3>{exerciseLog.exercise.name}</h3>
               
-              <div style={{ 
-                display: 'grid',
-                gridTemplateColumns: '40px 80px 80px 80px 60px',
-                gap: '0.5rem',
-                marginBottom: '0.5rem',
-                fontSize: '0.875rem',
-                fontWeight: 'bold',
-                color: '#64748b'
-              }}>
-                <div>Set</div>
-                <div>Previous</div>
-                <div>Weight</div>
-                <div>Reps</div>
-                <div>✓</div>
-              </div>
+              <SetRow>
+                <div><strong>Set</strong></div>
+                <div><strong>Weight</strong></div>
+                <div><strong>Reps</strong></div>
+                <div><strong>Done</strong></div>
+                <div></div>
+              </SetRow>
 
-              {exerciseLog.sets.map((set, setIndex) => (
+              {exerciseLog.sets.map((set, index) => (
                 <SetRow key={set.id}>
-                  <div>{setIndex + 1}</div>
-                  <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                    -
-                  </div>
+                  <div>{index + 1}</div>
                   <SetInput
                     type="number"
-                    placeholder="0"
+                    min="0"
+                    max="1000"
+                    placeholder="Weight"
                     value={set.weight.value || ''}
-                    onChange={(e) => handleSetUpdate(
-                      exerciseLog.id, 
-                      set.id, 
-                      'weight', 
-                      { value: parseFloat(e.target.value) || 0, unit: 'lbs' }
-                    )}
+                    onChange={(e) =>
+                      handleSetUpdate(exerciseLog.id, set.id, 'weight', {
+                        value: parseFloat(e.target.value || 0),
+                        unit: 'lbs',
+                      })
+                    }
                   />
                   <SetInput
                     type="number"
-                    placeholder="0"
+                    min="0"
+                    max="50"
+                    placeholder="Reps"
                     value={set.reps || ''}
-                    onChange={(e) => handleSetUpdate(
-                      exerciseLog.id, 
-                      set.id, 
-                      'reps', 
-                      parseInt(e.target.value) || 0
-                    )}
+                    onChange={(e) =>
+                      handleSetUpdate(
+                        exerciseLog.id,
+                        set.id,
+                        'reps',
+                        parseInt(e.target.value || 0)
+                      )
+                    }
                   />
                   <SetButton
                     isCompleted={set.isCompleted}
@@ -362,6 +386,7 @@ const WorkoutPage = () => {
                   >
                     ✓
                   </SetButton>
+                  <div></div>
                 </SetRow>
               ))}
 
@@ -374,7 +399,6 @@ const WorkoutPage = () => {
                   border: '1px solid #cbd5e1',
                   borderRadius: '0.375rem',
                   cursor: 'pointer',
-                  fontSize: '0.875rem'
                 }}
               >
                 Add Set
