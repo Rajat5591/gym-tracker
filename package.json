@@ -1,0 +1,46 @@
+{
+  "name": "gym-tracker-mern",
+  "version": "1.0.0",
+  "description": "Complete gym workout tracking application built with MERN stack",
+  "main": "backend/server.js",
+  "scripts": {
+    "install-server": "cd backend && npm install",
+    "install-client": "cd frontend && npm install",
+    "install-all": "npm run install-server && npm run install-client",
+    "server": "cd backend && npm run dev",
+    "client": "cd frontend && npm start",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "seed": "cd backend && node data/seedExercises.js",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start",
+    "heroku-postbuild": "npm run install-all && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "multer": "1.4.5-lts.1"
+  },
+  "keywords": [
+    "gym",
+    "workout",
+    "tracker",
+    "mern",
+    "react",
+    "nodejs",
+    "mongodb",
+    "fitness"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/gym-tracker-mern.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/gym-tracker-mern/issues"
+  },
+  "homepage": "https://github.com/your-username/gym-tracker-mern#readme"
+}
