@@ -42,5 +42,8 @@
   "bugs": {
     "url": "https://github.com/your-username/gym-tracker-mern/issues"
   },
-  "homepage": "https://github.com/your-username/gym-tracker-mern#readme"
+  "homepage": "https://github.com/your-username/gym-tracker-mern#readme",
+  "dependencies": {
+    "nodemon": "^3.1.10"
+  }
 }
