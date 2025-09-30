@@ -18,7 +18,7 @@ const auth = async (req, res, next) => {
         if (!token) {
             return res.status(401).json({
                 success: false,
-                message: 'Access denied. No token provided.'
+                message: 'Access denied: No authorization token provided.'
             });
         }
         
@@ -32,11 +32,11 @@ const auth = async (req, res, next) => {
             if (!user) {
                 return res.status(401).json({
                     success: false,
-                    message: 'Invalid token. User not found.'
+                    message: 'Unauthorized access: User associated with this token was not found.'
                 });
             }
             
-            // Update last active
+            // Update last active timestamp
             user.updateLastActive();
             
             req.user = user;
@@ -47,12 +47,12 @@ const auth = async (req, res, next) => {
             if (error.name === 'JsonWebTokenError') {
                 return res.status(401).json({
                     success: false,
-                    message: 'Invalid token.'
+                    message: 'Invalid token: The provided token is not valid.'
                 });
             } else if (error.name === 'TokenExpiredError') {
                 return res.status(401).json({
                     success: false,
-                    message: 'Token expired. Please log in again.'
+                    message: 'Session expired: Please log in again.'
                 });
             } else {
                 throw error;
@@ -60,10 +60,10 @@ const auth = async (req, res, next) => {
         }
         
     } catch (error) {
-        console.error('Auth middleware error:', error);
+        console.error('Authentication middleware error:', error);
         return res.status(500).json({
             success: false,
-            message: 'Server error during authentication'
+            message: 'Internal server error during authentication.'
         });
     }
 };
@@ -75,15 +75,16 @@ const adminAuth = async (req, res, next) => {
             if (req.user.role !== 'admin') {
                 return res.status(403).json({
                     success: false,
-                    message: 'Access denied. Admin privileges required.'
+                    message: 'Access denied: Admin privileges required.'
                 });
             }
             next();
         });
     } catch (error) {
+        console.error('Admin authentication error:', error);
         return res.status(500).json({
             success: false,
-            message: 'Server error during admin authentication'
+            message: 'Internal server error during admin authentication.'
         });
     }
 };
@@ -98,14 +99,14 @@ const ownerAuth = (model) => {
             if (!resource) {
                 return res.status(404).json({
                     success: false,
-                    message: `${model} not found`
+                    message: `${model} resource not found.`
                 });
             }
             
             if (resource.user.toString() !== req.userId.toString()) {
                 return res.status(403).json({
                     success: false,
-                    message: 'Access denied. You can only access your own resources.'
+                    message: 'Access denied: You may only access your own resources.'
                 });
             }
             
@@ -113,10 +114,10 @@ const ownerAuth = (model) => {
             next();
             
         } catch (error) {
-            console.error('Owner auth error:', error);
+            console.error('Ownership verification error:', error);
             return res.status(500).json({
                 success: false,
-                message: 'Server error during ownership verification'
+                message: 'Internal server error during ownership verification.'
             });
         }
     };
