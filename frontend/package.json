@@ -21,7 +21,10 @@
     "framer-motion": "^10.16.16",
     "react-hook-form": "^7.48.2",
     "uuid": "^9.0.1",
-    "@heroicons/react": "^2.0.18"
+    "@heroicons/react": "^2.0.18",
+    "@tensorflow/tfjs": "^4.10.0",
+    "@tensorflow-models/posenet": "^2.2.2",
+    "react-webcam": "^7.1.1"
   },
   "scripts": {
     "start": "react-scripts start",
