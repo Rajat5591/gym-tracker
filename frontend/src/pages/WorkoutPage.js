@@ -3,13 +3,12 @@ import styled from 'styled-components';
 import { PlusIcon, PlayIcon, StopIcon } from '@heroicons/react/24/outline';
 import { useWorkout } from '../context/WorkoutContext';
 import { exerciseAPI } from '../utils/api';
-import LoadingSpinner from '../components/LoadingSpinner';
-
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import PoseAnalyzer from '../components/PoseAnalyzer';
 
 const WorkoutContainer = styled.div`
   padding: 1rem;
 `;
-
 
 const Header = styled.div`
   display: flex;
@@ -17,7 +16,6 @@ const Header = styled.div`
   align-items: center;
   margin-bottom: 2rem;
 `;
-
 
 const StartWorkoutButton = styled.button`
   display: flex;
@@ -28,17 +26,15 @@ const StartWorkoutButton = styled.button`
   border: none;
   border-radius: ${({ theme }) => theme.borderRadius.md};
   padding: 1rem 2rem;
-  font-weight: ${({ theme }) => theme.typography.semibold};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
   cursor: pointer;
   transition: all 0.2s ease;
-
 
   &:hover {
     background: ${({ theme }) => theme.colors.primaryHover};
     transform: translateY(-2px);
   }
 `;
-
 
 const WorkoutSession = styled.div`
   background: ${({ theme }) => theme.colors.surface};
@@ -48,7 +44,6 @@ const WorkoutSession = styled.div`
   margin-bottom: 2rem;
 `;
 
-
 const SessionHeader = styled.div`
   display: flex;
   justify-content: space-between;
@@ -57,7 +52,6 @@ const SessionHeader = styled.div`
   padding-bottom: 1rem;
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 `;
-
 
 const ExerciseSearch = styled.input`
   width: 100%;
@@ -74,7 +68,6 @@ const ExerciseSearch = styled.input`
   }
 `;
 
-
 const ExerciseList = styled.div`
   max-height: 300px;
   overflow-y: auto;
@@ -82,7 +75,6 @@ const ExerciseList = styled.div`
   border-radius: ${({ theme }) => theme.borderRadius.md};
   background: ${({ theme }) => theme.colors.surface};
 `;
-
 
 const ExerciseItem = styled.div`
   padding: 0.75rem 1rem;
@@ -99,13 +91,11 @@ const ExerciseItem = styled.div`
   }
 `;
 
-
 const CurrentExercises = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
 `;
-
 
 const ExerciseBlock = styled.div`
   background: ${({ theme }) => theme.colors.background};
@@ -114,6 +104,32 @@ const ExerciseBlock = styled.div`
   padding: 1rem;
 `;
 
+const ExerciseHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+`;
+
+const AICoachButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: ${({ isActive }) => isActive ? '#ef4444' : '#22c55e'};
+  color: white;
+  border: none;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+`;
 
 const SetRow = styled.div`
   display: grid;
@@ -122,7 +138,6 @@ const SetRow = styled.div`
   align-items: center;
   padding: 0.5rem 0;
 `;
-
 
 const SetInput = styled.input`
   padding: 0.5rem;
@@ -138,7 +153,6 @@ const SetInput = styled.input`
     border-color: ${({ theme }) => theme.colors.primary};
   }
 `;
-
 
 const SetButton = styled.button`
   padding: 0.5rem;
@@ -156,6 +170,52 @@ const SetButton = styled.button`
   }
 `;
 
+const PoseAnalyzerSection = styled.div`
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: ${({ theme }) => theme.colors.surface};
+  border: 2px solid ${({ theme }) => theme.colors.primary};
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+`;
+
+const PoseAnalyzerHeader = styled.div`
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  margin-bottom: 1rem;
+`;
+
+const FeedbackToast = styled.div`
+  position: fixed;
+  top: 100px;
+  right: 20px;
+  background: ${({ type, theme }) => {
+    switch(type) {
+      case 'good': return theme.colors.success;
+      case 'warning': return '#f59e0b';
+      case 'error': return theme.colors.error;
+      default: return theme.colors.primary;
+    }
+  }};
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  box-shadow: ${({ theme }) => theme.shadows.lg};
+  z-index: 1000;
+  max-width: 300px;
+  animation: slideInRight 0.3s ease-out;
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+`;
 
 const WorkoutPage = () => {
   const { 
@@ -173,12 +233,27 @@ const WorkoutPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showExerciseList, setShowExerciseList] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  // AI Pose Analysis States
+  const [showPoseAnalyzer, setShowPoseAnalyzer] = useState(false);
+  const [currentExerciseForAnalysis, setCurrentExerciseForAnalysis] = useState(null);
+  const [feedbackToast, setFeedbackToast] = useState(null);
 
   useEffect(() => {
     if (showExerciseList) {
       fetchExercises();
     }
   }, [showExerciseList, searchTerm]);
+
+  // Clear feedback toast after 3 seconds
+  useEffect(() => {
+    if (feedbackToast) {
+      const timer = setTimeout(() => {
+        setFeedbackToast(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [feedbackToast]);
 
   const fetchExercises = async () => {
     try {
@@ -223,6 +298,38 @@ const WorkoutPage = () => {
 
   const handleCompleteSet = (exerciseId, setId) => {
     completeSet(exerciseId, setId, 90); // 90 seconds rest
+  };
+
+  // AI Pose Analysis Functions
+  const togglePoseAnalyzer = (exercise) => {
+    if (showPoseAnalyzer && currentExerciseForAnalysis?.name === exercise.name) {
+      // Stop current analysis
+      setShowPoseAnalyzer(false);
+      setCurrentExerciseForAnalysis(null);
+    } else {
+      // Start new analysis
+      setCurrentExerciseForAnalysis(exercise);
+      setShowPoseAnalyzer(true);
+    }
+  };
+
+  const handlePoseFeedback = (feedback) => {
+    // Determine feedback type based on message content
+    let type = 'info';
+    if (feedback.message.includes('Great') || feedback.message.includes('Perfect') || feedback.message.includes('Good')) {
+      type = 'good';
+    } else if (feedback.message.includes('Keep') || feedback.message.includes('Maintain')) {
+      type = 'warning';
+    } else if (feedback.message.includes('Alert') || feedback.message.includes('Wrong')) {
+      type = 'error';
+    }
+
+    setFeedbackToast({
+      message: feedback.details,
+      type: type
+    });
+
+    console.log('AI Coach Feedback:', feedback);
   };
 
   if (!isActive) {
@@ -339,7 +446,19 @@ const WorkoutPage = () => {
         <CurrentExercises>
           {currentWorkout?.exercises?.map((exerciseLog) => (
             <ExerciseBlock key={exerciseLog.id}>
-              <h3>{exerciseLog.exercise.name}</h3>
+              <ExerciseHeader>
+                <h3 style={{ margin: 0 }}>{exerciseLog.exercise.name}</h3>
+                <AICoachButton
+                  isActive={showPoseAnalyzer && currentExerciseForAnalysis?.name === exerciseLog.exercise.name}
+                  onClick={() => togglePoseAnalyzer(exerciseLog.exercise)}
+                >
+                  <span>🤖</span>
+                  {showPoseAnalyzer && currentExerciseForAnalysis?.name === exerciseLog.exercise.name 
+                    ? 'Stop AI Coach' 
+                    : 'AI Coach'
+                  }
+                </AICoachButton>
+              </ExerciseHeader>
               
               <SetRow>
                 <div><strong>Set</strong></div>
@@ -406,7 +525,37 @@ const WorkoutPage = () => {
             </ExerciseBlock>
           ))}
         </CurrentExercises>
+
+        {/* AI Pose Analyzer Section */}
+        {showPoseAnalyzer && currentExerciseForAnalysis && (
+          <PoseAnalyzerSection>
+            <PoseAnalyzerHeader>
+              <h3 style={{ margin: 0, color: '#22c55e' }}>
+                🤖 AI Form Coach - {currentExerciseForAnalysis.name}
+              </h3>
+            </PoseAnalyzerHeader>
+            <PoseAnalyzer 
+              exerciseName={currentExerciseForAnalysis.name}
+              onFeedback={handlePoseFeedback}
+            />
+          </PoseAnalyzerSection>
+        )}
       </WorkoutSession>
+
+      {/* Feedback Toast */}
+      {feedbackToast && (
+        <FeedbackToast type={feedbackToast.type}>
+          <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
+            {feedbackToast.type === 'good' && '✅ Great Form!'}
+            {feedbackToast.type === 'warning' && '⚠️ Form Check'}
+            {feedbackToast.type === 'error' && '❌ Form Alert'}
+            {feedbackToast.type === 'info' && 'ℹ️ AI Coach'}
+          </div>
+          <div style={{ fontSize: '0.875rem' }}>
+            {feedbackToast.message}
+          </div>
+        </FeedbackToast>
+      )}
     </WorkoutContainer>
   );
 };

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { MagnifyingGlassIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { exerciseAPI } from '../utils/api';
-import LoadingSpinner from '../components/LoadingSpinner';
-import { getCategoryColor, getMuscleEmoji } from '../utils/helpers';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import { getCategoryColor, getMuscleGroupEmoji } from '../utils/helpers';
 
 const Container = styled.div`
   padding: 1rem;
@@ -386,7 +386,7 @@ const ExercisesPage = () => {
       <CategoryTabs>
         {categoryOptions.map((cat) => (
           <CategoryTab key={cat} active={selectedCategory === cat} onClick={() => onCategoryChange(cat)}>
-            {cat === 'all' ? '🏋️ All' : `${getMuscleEmoji(cat)} ${cat}`}
+            {cat === 'all' ? '🏋️ All' : `${getMuscleGroupEmoji(cat)} ${cat}`}
           </CategoryTab>
         ))}
       </CategoryTabs>
@@ -422,7 +422,7 @@ const ExercisesPage = () => {
                   <MuscleGroup>
                     {primaryMuscles.map((muscle) => (
                       <span key={muscle} style={{ marginRight: 6 }}>
-                        {getMuscleEmoji(muscle)} {muscle}
+                        {getMuscleGroupEmoji(muscle)} {muscle}
                       </span>
                     ))}
                   </MuscleGroup>
@@ -434,7 +434,7 @@ const ExercisesPage = () => {
                       <MuscleGroup>
                         {secondaryMuscles.map((muscle) => (
                           <span key={muscle} style={{ marginRight: 6 }}>
-                            {getMuscleEmoji(muscle)} {muscle}
+                            {getMuscleGroupEmoji(muscle)} {muscle}
                           </span>
                         ))}
                       </MuscleGroup>
